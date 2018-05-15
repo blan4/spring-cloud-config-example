@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: service_1
+  cloud:
+    consul:
+      host: ${CONSUL_HOST}
+      port: ${CONSUL_PORT}
+      discovery:
+        instanceId: ${spring.application.name}:${random.value}
+      config:
+        enabled: true

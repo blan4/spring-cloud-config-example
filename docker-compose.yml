@@ -1,0 +1,55 @@
+version: '2'
+services:
+  consul-server-bootstrap:
+    image: consul:1.1.0
+    command: "agent -server -bootstrap-expect 3 -ui -client 0.0.0.0"
+    ports:
+      - "8400:8400"
+      - "8500:8500"
+      - "8600:8600"
+    environment:
+      CONSUL_UI_BETA: "true"
+
+  consul-1:
+      image: consul:1.1.0
+      command: "agent -server -retry-join consul-server-bootstrap -client 0.0.0.0"
+      expose:
+        - "8400"
+        - "8500"
+        - "8600"
+      depends_on:
+        - consul-server-bootstrap
+
+  consul-2:
+    image: consul:1.1.0
+    command: "agent -server -retry-join consul-server-bootstrap -client 0.0.0.0"
+    expose:
+      - "8400"
+      - "8500"
+      - "8600"
+    depends_on:
+      - consul-server-bootstrap
+
+  consul-3:
+    image: consul:1.1.0
+    command: "agent -server -retry-join consul-server-bootstrap -client 0.0.0.0"
+    expose:
+      - "8400"
+      - "8500"
+      - "8600"
+    depends_on:
+      - consul-server-bootstrap
+
+  service-1:
+    image: openjdk:8-jre-alpine
+    volumes:
+      - ./service_1/build/libs/service_1-0.0.1-SNAPSHOT.jar:/app.jar
+    command: java -XX:MaxRAM=300M -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -jar /app.jar --spring.profiles.active=docker --server.port=8080
+    environment:
+      CONSUL_HOST: consul-server-bootstrap
+      CONSUL_PORT: 8500
+    ports:
+      - "8080:8080"
+#      - "5005:5005"
+    depends_on:
+      - consul-server-bootstrap
